@@ -15,12 +15,12 @@
 			margin: 0;
 			padding: 0;
 		}
-	
+
 		h1 {
 			text-align: center;
 			margin-top: 20px;
 		}
-	
+
 		form {
 			margin: 20px auto;
 			padding: 20px;
@@ -28,74 +28,76 @@
 			border: 1px solid #ccc;
 			border-radius: 4px;
 			max-width: 800px;
+			width: 90%; /* Adjusts the form width for smaller screens */
 		}
-	
+
 		table {
 			width: 100%;
 			border-collapse: collapse;
 			margin-bottom: 20px;
 			table-layout: fixed;
 		}
-	
-		th,
-		td {
+
+		th, td {
 			padding: 10px;
 			text-align: center;
 			border-bottom: 1px solid #ddd;
 			border-right: 1px solid #ddd;
+			word-wrap: break-word; /* Ensures long text wraps correctly */
 		}
-	
+
 		th {
 			position: sticky;
 			top: 0;
 			background-color: #fff;
 			z-index: 1;
 		}
-	
+
 		th:last-child,
 		td:last-child {
 			border-right: none;
 		}
-	
+
 		th:first-child,
 		td.question {
 			text-align: left;
 			width: 25%;
 		}
-	
+
 		tr:hover {
 			background-color: #f1f1f1;
 		}
-	
+
 		.submit-btn {
 			display: block;
 			width: 100%;
-			padding: 10px;
+			padding: 15px; /* Increased padding for better touch experience */
 			background-color: #007BFF;
 			color: #fff;
 			border: none;
 			border-radius: 4px;
 			cursor: pointer;
-			font-size: 16px;
+			font-size: 18px; /* Increased font size for readability */
+			margin-top: 20px;
 		}
-	
+
 		.submit-btn:hover {
 			background-color: #0056b3;
 		}
-	
+
 		.no-border-table {
 			border: none;
 			border-collapse: collapse;
 			border-spacing: 0;
 			text-align: left;
 		}
-	
+
 		.no-border-table th,
 		.no-border-table td {
 			border: none;
 			padding: 8px;
 		}
-	
+
 		.category {
 			margin-bottom: 20px;
 			padding: 10px;
@@ -103,30 +105,92 @@
 			border-radius: 4px;
 			background-color: #f9f9f9;
 		}
-	
+
 		.category h2 {
 			background-color: #007BFF;
 			color: #fff;
 			padding: 10px;
 			margin: -10px -10px 10px -10px;
 			border-radius: 4px 4px 0 0;
+			font-size: 18px; /* Increased font size for readability */
 		}
-	
+
 		.item {
 			margin: 5px 0;
 			padding: 5px 0;
 			display: flex;
 			align-items: center;
 		}
-	
+
+		.item label {
+			margin-left: 10px; /* Adds space between radio/checkbox and label */
+		}
+
 		.hidden {
 			display: none;
 		}
-	
+
 		table td input[type="radio"] {
-			transform: scale(2);
+			transform: scale(1.5); /* Adjust scale for better touch targets */
 			margin: 10px;
 			transform-origin: center;
+		}
+
+		/* Mobile-specific styles */
+		@media (max-width: 600px) {
+			body {
+				padding: 10px;
+			}
+
+			form {
+				padding: 15px;
+			}
+
+			table, th, td {
+				display: block;
+				width: 100%;
+			}
+
+			th {
+				display: none; /* Hide table headers on mobile */
+			}
+
+			td {
+				text-align: left;
+				padding: 10px 0;
+				border-right: none;
+				border-bottom: 1px solid #ddd;
+				position: relative;
+				padding-left: 50%;
+			}
+
+			td:before {
+				content: attr(data-label);
+				position: absolute;
+				left: 10px;
+				width: calc(50% - 20px);
+				font-weight: bold;
+			}
+
+			.submit-btn {
+				font-size: 16px;
+				padding: 12px;
+			}
+
+			.category h2 {
+				font-size: 16px;
+				padding: 8px;
+			}
+
+			.item {
+				flex-direction: column;
+				align-items: flex-start;
+			}
+
+			.item label {
+				margin-left: 0;
+				margin-top: 5px;
+			}
 		}
 
 		.invalid {
@@ -144,72 +208,123 @@
 			return element.offsetWidth > 0 && element.offsetHeight > 0;
 		}
 
-		function isFormValid(formName) {
-			let valid = true;
-			const form = document.getElementById(formName);
+		function getErrorMarkerElement(element) {
+			if ((element.tagName.toLowerCase() === "fieldset")) {
+				return element;
+			}
+			let result = element.parentElement;
+			if ((result.tagName.toLowerCase() === "td") || result.classList.contains('item')) {
+				result = result.parentElement;
+			}
+			return result;
+		}
 
-			let invalidElement = null;
-
-			for (let element of form.elements) {
-				const tagName = element.tagName.toLowerCase();
-				if (!['input', 'select'].includes(tagName)) continue;
-
-				let closest = element.closest('fieldset') || element.closest('div') || element.closest('tr');
-				if (closest.classList.contains('item')) closest = closest.closest('div');
-
-				const classList = closest.classList;
-				if (!isVisible(element)) {
-					classList.remove('invalid');
-					continue;
+		function isValidFieldSet(fieldSet) {
+			if (fieldSet.classList.contains('Mandatory')) {
+				let valid = false;
+				for (const child of fieldSet.children) {
+					const tagName = child.tagName.toLowerCase();
+					if (tagName === "input") {
+						const type = child.type.toLowerCase();
+						if (type === "checkbox") {
+							if (child.checked) {
+								valid = true;
+								break;
+							}
+						}
+					}
 				}
+				return valid;
+			}
+			return true;
+		}
 
-				let setToValid = false;
-				const type = element.type;
+		function isValid(element) {
+			let valid = true;
 
+			const tagName = element.tagName.toLowerCase();
+			if (tagName === "input") {
+				const type = element.type.toLowerCase();
 				switch (type) {
-					case 'checkbox':
-						setToValid = true;
+					case "checkbox":
 						break;
-					case 'radio':
-						setToValid = !!form.querySelector(`input[name="${element.name}"]:checked`);
+					case "radio":
+						valid = !!element.form.querySelector(`input[name="${element.name}"]:checked`);
 						break;
-					case 'text':
-						if (element.classList.contains('NonNegativeInteger')) {
-							const value = Number(element.value);
-							setToValid = Number.isInteger(value) && value >= 0;
-						} else {
-							setToValid = !!element.value;
+					case "text":
+					case "number":
+						valid = false;
+						if (element.value) {
+							if (element.classList.contains('NonNegativeInteger')) {
+								const value = Number(element.value);
+								valid = Number.isInteger(value) && (0 <= value);
+							} else if (element.classList.contains('PositiveInteger')) {
+								const value = Number(element.value);
+								valid = Number.isInteger(value) && (0 < value);
+							} else {
+								valid = true;
+							}
 						}
 						break;
 					default:
-						setToValid = !!element.value;
+						valid = !!element.value;
 						break;
 				}
-
-				if (setToValid) {
-					classList.remove('invalid');
-				} else {
-					classList.add('invalid');
-					if (invalidElement == null) {
-						invalidElement = element;
+			} else if (tagName == "select") {
+				valid = !!element.value;
+			} else if (tagName == "fieldset") {
+				valid = isValidFieldSet(element);
+			} else {
+				let firstInvalidElement = null;
+				for (const child of element.children) {
+					let invalidElement = isValid(child);
+					if (firstInvalidElement === null) {
+						firstInvalidElement = invalidElement;
 					}
+				}
+				return firstInvalidElement;
+			}
 
-					valid = false;
+			valid = valid || !isVisible(element);
+
+			let closest = getErrorMarkerElement(element);
+
+			if (valid) {
+				getErrorMarkerElement(element).classList.remove('invalid');
+			} else {
+				getErrorMarkerElement(element).classList.add('invalid');
+			}
+
+			if (!valid) {
+				return element;
+			}
+
+			let firstInvalidElement = null;
+			for (const child of element.children) {
+				let invalidElement = isValid(child);
+				if (firstInvalidElement === null) {
+					firstInvalidElement = invalidElement;
 				}
 			}
+			return firstInvalidElement;
+		}
 
-			if (invalidElement != null) {
-				var elementRect = invalidElement.getBoundingClientRect();
-				var headerOffset = 50;
-				var offsetPosition = elementRect.top + window.pageYOffset - headerOffset;
+		function isFormValid(formName) {
+			const form = document.getElementById(formName);
+			const invalidElement = isValid(form);
 
-				window.scrollTo({
-					top: offsetPosition,
-					behavior: 'smooth'
-				});
-			}
+			if (invalidElement === null)
+				return true;
 
-			return valid;
+			var elementRect = invalidElement.getBoundingClientRect();
+			var headerOffset = 50;
+			var offsetPosition = elementRect.top + window.pageYOffset - headerOffset;
+			window.scrollTo({
+				top: offsetPosition,
+				behavior: 'smooth'
+			});
+			
+			return false;
 		}
 
 		function appendFormData(formName) {
@@ -302,6 +417,7 @@
 			.catch(error => console.error('Error:', error));
 		}
 	</script>
+	
 	<form id="Consent_form">
 		<h1>Consent Form</h1>
 		<p>
@@ -344,7 +460,7 @@
 			</tr>
 			<tr>
 				<td><strong>Study Coordinators:</strong></td>
-				<td>Lajos Simon PhD, assistant professor and</td>
+				<td>Lajos Simon PhD, associate professor and</td>
 			</tr>
 			<tr>
 				<td></td>
@@ -453,22 +569,22 @@
 				<label for="GeneralData_not_given">not given</label>
 			</div>
 		</div>
-		<div class="category" id="GeneralData_martial_status_div">
-			<h2>Martial Status</h2>
+		<div class="category" id="GeneralData_marital_status_div">
+			<h2>Marital Status</h2>
 			<div class="item">
-				<input type="radio" id="GeneralData_single" name="GeneralData_martial_status" value="single" required>
+				<input type="radio" id="GeneralData_single" name="GeneralData_marital_status" value="single" required>
 				<label for="GeneralData_single">single</label>
 			</div>
 			<div class="item">
-				<input type="radio" id="GeneralData_married" name="GeneralData_martial_status" value="married">
+				<input type="radio" id="GeneralData_married" name="GeneralData_marital_status" value="married">
 				<label for="GeneralData_married">married</label>
 			</div>
 			<div class="item">
-				<input type="radio" id="GeneralData_divorced" name="GeneralData_martial_status" value="divorced">
+				<input type="radio" id="GeneralData_divorced" name="GeneralData_marital_status" value="divorced">
 				<label for="GeneralData_divorced">divorced</label>
 			</div>
 			<div class="item">
-				<input type="radio" id="GeneralData_widow_er" name="GeneralData_martial_status" value="widow(er)">
+				<input type="radio" id="GeneralData_widow_er" name="GeneralData_marital_status" value="widow(er)">
 				<label for="GeneralData_widow_er">widow(er)</label>
 			</div>
 		</div>
@@ -773,140 +889,417 @@
 	</form>
 	<form id="DES_form" class="hidden">
 		<h1>DES: Modified Dental Environment Stress Questionnaire items and Domains</h1>
+		<p>
+			<strong>Instructions:</strong>
+			The academic environment is a challenge for dental students due to the multiple sources of stress 
+			they face. Please indicate how much each option applies to you.
+		</p>
 		<div class="category">
 			<h2>Living accommodation</h2>
-			<div class="item"><input type="checkbox" id="DES_moving_away"
-					name="DES_living_accommodation_moving_away"><label for="DES_moving_away">Moving away from
-					home</label></div>
-			<div class="item"><input type="checkbox" id="DES_environment_study"
-					name="DES_living_accommodation_environment_study"><label for="DES_environment_study">Environment in
-					which to study</label></div>
-			<div class="item"><input type="checkbox" id="DES_lack_home_atmosphere"
-					name="DES_living_accommodation_lack_home_atmosphere"><label for="DES_lack_home_atmosphere">Lack of
-					home atmosphere</label></div>
-			<div class="item"><input type="checkbox" id="DES_accommodation_problems"
-					name="DES_living_accommodation_accommodation_problems"><label for="DES_accommodation_problems">Other
-					problems with accommodation</label></div>
+			<table id="DES_table_1">
+				<thead>
+					<tr>
+						<th>Stressor</th>
+						<th>Not pertinent</th>
+						<th>Not stressful</th>
+						<th>Slightly stressful</th>
+						<th>Moderately stressful</th>
+						<th>Very stressful</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr id="DES_row_0">
+						<td class="question">Moving away from home</td>
+						<td><input type="radio" name="DES_living_accommodation_moving_away" value="0" required></td>
+						<td><input type="radio" name="DES_living_accommodation_moving_away" value="1"></td>
+						<td><input type="radio" name="DES_living_accommodation_moving_away" value="2"></td>
+						<td><input type="radio" name="DES_living_accommodation_moving_away" value="3"></td>
+						<td><input type="radio" name="DES_living_accommodation_moving_away" value="4"></td>
+					</tr>
+					<tr id="DES_row_1">
+						<td class="question">Environment in which to study</td>
+						<td><input type="radio" name="DES_living_accommodation_environment_study" value="0" required></td>
+						<td><input type="radio" name="DES_living_accommodation_environment_study" value="1"></td>
+						<td><input type="radio" name="DES_living_accommodation_environment_study" value="2"></td>
+						<td><input type="radio" name="DES_living_accommodation_environment_study" value="3"></td>
+						<td><input type="radio" name="DES_living_accommodation_environment_study" value="4"></td>
+					</tr>
+					<tr id="DES_row_2">
+						<td class="question">Lack of home atmosphere</td>
+						<td><input type="radio" name="DES_living_accommodation_lack_home_atmosphere" value="0" required></td>
+						<td><input type="radio" name="DES_living_accommodation_lack_home_atmosphere" value="1"></td>
+						<td><input type="radio" name="DES_living_accommodation_lack_home_atmosphere" value="2"></td>
+						<td><input type="radio" name="DES_living_accommodation_lack_home_atmosphere" value="3"></td>
+						<td><input type="radio" name="DES_living_accommodation_lack_home_atmosphere" value="4"></td>
+					</tr>
+					<tr id="DES_row_3">
+						<td class="question">Other problems with accommodation</td>
+						<td><input type="radio" name="DES_living_accommodation_accommodation_problems" value="0" required></td>
+						<td><input type="radio" name="DES_living_accommodation_accommodation_problems" value="1"></td>
+						<td><input type="radio" name="DES_living_accommodation_accommodation_problems" value="2"></td>
+						<td><input type="radio" name="DES_living_accommodation_accommodation_problems" value="3"></td>
+						<td><input type="radio" name="DES_living_accommodation_accommodation_problems" value="4"></td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<div class="category">
 			<h2>Personal factors</h2>
-			<div class="item"><input type="checkbox" id="DES_making_friends"
-					name="DES_personal_factors_making_friends"><label for="DES_making_friends">Making friends</label>
-			</div>
-			<div class="item"><input type="checkbox" id="DES_financial_responsibilities"
-					name="DES_personal_factors_financial_responsibilities"><label
-					for="DES_financial_responsibilities">Financial responsibilities</label></div>
-			<div class="item"><input type="checkbox" id="DES_physical_health"
-					name="DES_personal_factors_physical_health"><label for="DES_physical_health">Personal physical
-					health</label></div>
-			<div class="item"><input type="checkbox" id="DES_intimate_relationships"
-					name="DES_personal_factors_intimate_relationships"><label for="DES_intimate_relationships">Intimate
-					relationships</label></div>
-			<div class="item"><input type="checkbox" id="DES_postpone_marriage"
-					name="DES_personal_factors_postpone_marriage"><label for="DES_postpone_marriage">Necessity to
-					postpone marriage</label></div>
-			<div class="item"><input type="checkbox" id="DES_postpone_children"
-					name="DES_personal_factors_postpone_children"><label for="DES_postpone_children">Necessity to
-					postpone children</label></div>
-			<div class="item"><input type="checkbox" id="DES_multiple_roles"
-					name="DES_personal_factors_multiple_roles"><label for="DES_multiple_roles">Having multiple
-					roles</label></div>
-			<div class="item"><input type="checkbox" id="DES_conflict_spouse"
-					name="DES_personal_factors_conflict_spouse"><label for="DES_conflict_spouse">Conflict with
-					spouse/mate over career development</label></div>
-			<div class="item"><input type="checkbox" id="DES_lack_relaxation_time"
-					name="DES_personal_factors_lack_relaxation_time"><label for="DES_lack_relaxation_time">Lack of time
-					for relaxation</label></div>
-			<div class="item"><input type="checkbox" id="DES_children_home"
-					name="DES_personal_factors_children_home"><label for="DES_children_home">Having children in the
-					home</label></div>
-			<div class="item"><input type="checkbox" id="DES_reduced_holidays"
-					name="DES_personal_factors_reduced_holidays"><label for="DES_reduced_holidays">Having reduced
-					holidays compared with other students</label></div>
-			<div class="item"><input type="checkbox" id="DES_fear_of_crime"
-					name="DES_personal_factors_fear_of_crime"><label for="DES_fear_of_crime">Fear of going out due to
-					crime</label></div>
-			<div class="item"><input type="checkbox" id="DES_dependencies"
-					name="DES_personal_factors_dependencies"><label for="DES_dependencies">Dependencies (for example,
-					drugs, alcohol)</label></div>
+			<table id="DES_table_2">
+				<thead>
+					<tr>
+						<th>Stressor</th>
+						<th>Not pertinent</th>
+						<th>Not stressful</th>
+						<th>Slightly stressful</th>
+						<th>Moderately stressful</th>
+						<th>Very stressful</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr id="DES_row_4">
+						<td class="question">Making friends</td>
+						<td><input type="radio" name="DES_personal_factors_making_friends" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_making_friends" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_making_friends" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_making_friends" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_making_friends" value="4"></td>
+					</tr>
+					<tr id="DES_row_5">
+						<td class="question">Financial responsibilities</td>
+						<td><input type="radio" name="DES_personal_factors_financial_responsibilities" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_financial_responsibilities" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_financial_responsibilities" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_financial_responsibilities" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_financial_responsibilities" value="4"></td>
+					</tr>
+					<tr id="DES_row_6">
+						<td class="question">Personal physical health</td>
+						<td><input type="radio" name="DES_personal_factors_physical_health" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_physical_health" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_physical_health" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_physical_health" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_physical_health" value="4"></td>
+					</tr>
+					<tr id="DES_row_7">
+						<td class="question">Intimate relationships</td>
+						<td><input type="radio" name="DES_personal_factors_intimate_relationships" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_intimate_relationships" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_intimate_relationships" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_intimate_relationships" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_intimate_relationships" value="4"></td>
+					</tr>
+					<tr id="DES_row_8">
+						<td class="question">Necessity to postpone marriage</td>
+						<td><input type="radio" name="DES_personal_factors_postpone_marriage" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_postpone_marriage" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_postpone_marriage" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_postpone_marriage" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_postpone_marriage" value="4"></td>
+					</tr>
+					<tr id="DES_row_9">
+						<td class="question">Necessity to postpone children</td>
+						<td><input type="radio" name="DES_personal_factors_postpone_children" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_postpone_children" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_postpone_children" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_postpone_children" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_postpone_children" value="4"></td>
+					</tr>
+					<tr id="DES_row_10">
+						<td class="question">Having multiple roles</td>
+						<td><input type="radio" name="DES_personal_factors_multiple_roles" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_multiple_roles" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_multiple_roles" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_multiple_roles" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_multiple_roles" value="4"></td>
+					</tr>
+					<tr id="DES_row_11">
+						<td class="question">Conflict with spouse/mate over career development</td>
+						<td><input type="radio" name="DES_personal_factors_conflict_spouse" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_conflict_spouse" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_conflict_spouse" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_conflict_spouse" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_conflict_spouse" value="4"></td>
+					</tr>
+					<tr id="DES_row_12">
+						<td class="question">Lack of time for relaxation</td>
+						<td><input type="radio" name="DES_personal_factors_lack_relaxation_time" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_lack_relaxation_time" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_lack_relaxation_time" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_lack_relaxation_time" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_lack_relaxation_time" value="4"></td>
+					</tr>
+					<tr id="DES_row_13">
+						<td class="question">Having children in the home</td>
+						<td><input type="radio" name="DES_personal_factors_children_home" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_children_home" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_children_home" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_children_home" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_children_home" value="4"></td>
+					</tr>
+					<tr id="DES_row_14">
+						<td class="question">Having reduced holidays compared with other students</td>
+						<td><input type="radio" name="DES_personal_factors_reduced_holidays" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_reduced_holidays" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_reduced_holidays" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_reduced_holidays" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_reduced_holidays" value="4"></td>
+					</tr>
+					<tr id="DES_row_15">
+						<td class="question">Fear of going out due to crime</td>
+						<td><input type="radio" name="DES_personal_factors_fear_of_crime" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_fear_of_crime" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_fear_of_crime" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_fear_of_crime" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_fear_of_crime" value="4"></td>
+					</tr>
+					<tr id="DES_row_16">
+						<td class="question">Dependencies (for example, drugs, alcohol)</td>
+						<td><input type="radio" name="DES_personal_factors_dependencies" value="0" required></td>
+						<td><input type="radio" name="DES_personal_factors_dependencies" value="1"></td>
+						<td><input type="radio" name="DES_personal_factors_dependencies" value="2"></td>
+						<td><input type="radio" name="DES_personal_factors_dependencies" value="3"></td>
+						<td><input type="radio" name="DES_personal_factors_dependencies" value="4"></td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<div class="category">
 			<h2>Educational environment</h2>
-			<div class="item"><input type="checkbox" id="DES_expectations_vs_reality"
-					name="DES_educational_environment_expectations_vs_reality"><label
-					for="DES_expectations_vs_reality">Expectation versus reality of dental school</label></div>
-			<div class="item"><input type="checkbox" id="DES_approachability_of_staff"
-					name="DES_educational_environment_approachability_of_staff"><label
-					for="DES_approachability_of_staff">Approachability of staff</label></div>
-			<div class="item"><input type="checkbox" id="DES_criticism"
-					name="DES_educational_environment_criticism"><label for="DES_criticism">Criticism about academic or
-					clinical work</label></div>
-			<div class="item"><input type="checkbox" id="DES_rules_and_regulations"
-					name="DES_educational_environment_rules_and_regulations"><label
-					for="DES_rules_and_regulations">Rules and regulations of the dental school</label></div>
-			<div class="item"><input type="checkbox" id="DES_discrimination"
-					name="DES_educational_environment_discrimination"><label for="DES_discrimination">Discrimination due
-					to race, nationality, gender or social class</label></div>
+			<table id="DES_table_3">
+				<thead>
+					<tr>
+						<th>Stressor</th>
+						<th>Not pertinent</th>
+						<th>Not stressful</th>
+						<th>Slightly stressful</th>
+						<th>Moderately stressful</th>
+						<th>Very stressful</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr id="DES_row_17">
+						<td class="question">Expectation versus reality of dental school</td>
+						<td><input type="radio" name="DES_educational_environment_expectations_vs_reality" value="0" required></td>
+						<td><input type="radio" name="DES_educational_environment_expectations_vs_reality" value="1"></td>
+						<td><input type="radio" name="DES_educational_environment_expectations_vs_reality" value="2"></td>
+						<td><input type="radio" name="DES_educational_environment_expectations_vs_reality" value="3"></td>
+						<td><input type="radio" name="DES_educational_environment_expectations_vs_reality" value="4"></td>
+					</tr>
+					<tr id="DES_row_18">
+						<td class="question">Approachability of staff</td>
+						<td><input type="radio" name="DES_educational_environment_approachability_of_staff" value="0" required></td>
+						<td><input type="radio" name="DES_educational_environment_approachability_of_staff" value="1"></td>
+						<td><input type="radio" name="DES_educational_environment_approachability_of_staff" value="2"></td>
+						<td><input type="radio" name="DES_educational_environment_approachability_of_staff" value="3"></td>
+						<td><input type="radio" name="DES_educational_environment_approachability_of_staff" value="4"></td>
+					</tr>
+					<tr id="DES_row_19">
+						<td class="question">Criticism about academic or clinical work</td>
+						<td><input type="radio" name="DES_educational_environment_criticism" value="0" required></td>
+						<td><input type="radio" name="DES_educational_environment_criticism" value="1"></td>
+						<td><input type="radio" name="DES_educational_environment_criticism" value="2"></td>
+						<td><input type="radio" name="DES_educational_environment_criticism" value="3"></td>
+						<td><input type="radio" name="DES_educational_environment_criticism" value="4"></td>
+					</tr>
+					<tr id="DES_row_20">
+						<td class="question">Rules and regulations of the dental school</td>
+						<td><input type="radio" name="DES_educational_environment_rules_and_regulations" value="0" required></td>
+						<td><input type="radio" name="DES_educational_environment_rules_and_regulations" value="1"></td>
+						<td><input type="radio" name="DES_educational_environment_rules_and_regulations" value="2"></td>
+						<td><input type="radio" name="DES_educational_environment_rules_and_regulations" value="3"></td>
+						<td><input type="radio" name="DES_educational_environment_rules_and_regulations" value="4"></td>
+					</tr>
+					<tr id="DES_row_21">
+						<td class="question">Discrimination due to race, nationality, gender or social class</td>
+						<td><input type="radio" name="DES_educational_environment_discrimination" value="0" required></td>
+						<td><input type="radio" name="DES_educational_environment_discrimination" value="1"></td>
+						<td><input type="radio" name="DES_educational_environment_discrimination" value="2"></td>
+						<td><input type="radio" name="DES_educational_environment_discrimination" value="3"></td>
+						<td><input type="radio" name="DES_educational_environment_discrimination" value="4"></td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<div class="category">
 			<h2>Academic work</h2>
-			<div class="item"><input type="checkbox" id="DES_assigned_coursework"
-					name="DES_academic_work_assigned_coursework"><label for="DES_assigned_coursework">Amount of assigned
-					course work</label></div>
-			<div class="item"><input type="checkbox" id="DES_coursework_difficulty"
-					name="DES_academic_work_coursework_difficulty"><label for="DES_coursework_difficulty">Difficulty of
-					course work</label></div>
-			<div class="item"><input type="checkbox" id="DES_falling_behind"
-					name="DES_academic_work_falling_behind"><label for="DES_falling_behind">Fear of being able to catch
-					up if falling behind</label></div>
-			<div class="item"><input type="checkbox" id="DES_competition_grades"
-					name="DES_academic_work_competition_grades"><label for="DES_competition_grades">Competition for
-					grades</label></div>
-			<div class="item"><input type="checkbox" id="DES_fear_of_failure"
-					name="DES_academic_work_fear_of_failure"><label for="DES_fear_of_failure">Fear of failing course or
-					year</label></div>
-			<div class="item"><input type="checkbox" id="DES_career_uncertainty"
-					name="DES_academic_work_career_uncertainty"><label for="DES_career_uncertainty">Uncertainty about
-					dental career</label></div>
-			<div class="item"><input type="checkbox" id="DES_examinations" name="DES_academic_work_examinations"><label
-					for="DES_examinations">Examinations</label></div>
-			<div class="item"><input type="checkbox" id="DES_lack_of_input"
-					name="DES_academic_work_lack_of_input"><label for="DES_lack_of_input">Lack of input in decision
-					making process in dental school</label></div>
+			<table id="DES_table_4">
+				<thead>
+					<tr>
+						<th>Stressor</th>
+						<th>Not pertinent</th>
+						<th>Not stressful</th>
+						<th>Slightly stressful</th>
+						<th>Moderately stressful</th>
+						<th>Very stressful</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr id="DES_row_22">
+						<td class="question">Amount of assigned course work</td>
+						<td><input type="radio" name="DES_academic_work_assigned_coursework" value="0" required></td>
+						<td><input type="radio" name="DES_academic_work_assigned_coursework" value="1"></td>
+						<td><input type="radio" name="DES_academic_work_assigned_coursework" value="2"></td>
+						<td><input type="radio" name="DES_academic_work_assigned_coursework" value="3"></td>
+						<td><input type="radio" name="DES_academic_work_assigned_coursework" value="4"></td>
+					</tr>
+					<tr id="DES_row_23">
+						<td class="question">Difficulty of course work</td>
+						<td><input type="radio" name="DES_academic_work_coursework_difficulty" value="0" required></td>
+						<td><input type="radio" name="DES_academic_work_coursework_difficulty" value="1"></td>
+						<td><input type="radio" name="DES_academic_work_coursework_difficulty" value="2"></td>
+						<td><input type="radio" name="DES_academic_work_coursework_difficulty" value="3"></td>
+						<td><input type="radio" name="DES_academic_work_coursework_difficulty" value="4"></td>
+					</tr>
+					<tr id="DES_row_24">
+						<td class="question">Fear of being able to catch up if falling behind</td>
+						<td><input type="radio" name="DES_academic_work_falling_behind" value="0" required></td>
+						<td><input type="radio" name="DES_academic_work_falling_behind" value="1"></td>
+						<td><input type="radio" name="DES_academic_work_falling_behind" value="2"></td>
+						<td><input type="radio" name="DES_academic_work_falling_behind" value="3"></td>
+						<td><input type="radio" name="DES_academic_work_falling_behind" value="4"></td>
+					</tr>
+					<tr id="DES_row_25">
+						<td class="question">Competition for grades</td>
+						<td><input type="radio" name="DES_academic_work_competition_grades" value="0" required></td>
+						<td><input type="radio" name="DES_academic_work_competition_grades" value="1"></td>
+						<td><input type="radio" name="DES_academic_work_competition_grades" value="2"></td>
+						<td><input type="radio" name="DES_academic_work_competition_grades" value="3"></td>
+						<td><input type="radio" name="DES_academic_work_competition_grades" value="4"></td>
+					</tr>
+					<tr id="DES_row_26">
+						<td class="question">Fear of failing course or year</td>
+						<td><input type="radio" name="DES_academic_work_fear_of_failure" value="0" required></td>
+						<td><input type="radio" name="DES_academic_work_fear_of_failure" value="1"></td>
+						<td><input type="radio" name="DES_academic_work_fear_of_failure" value="2"></td>
+						<td><input type="radio" name="DES_academic_work_fear_of_failure" value="3"></td>
+						<td><input type="radio" name="DES_academic_work_fear_of_failure" value="4"></td>
+					</tr>
+					<tr id="DES_row_27">
+						<td class="question">Uncertainty about dental career</td>
+						<td><input type="radio" name="DES_academic_work_career_uncertainty" value="0" required></td>
+						<td><input type="radio" name="DES_academic_work_career_uncertainty" value="1"></td>
+						<td><input type="radio" name="DES_academic_work_career_uncertainty" value="2"></td>
+						<td><input type="radio" name="DES_academic_work_career_uncertainty" value="3"></td>
+						<td><input type="radio" name="DES_academic_work_career_uncertainty" value="4"></td>
+					</tr>
+					<tr id="DES_row_28">
+						<td class="question">Examinations</td>
+						<td><input type="radio" name="DES_academic_work_examinations" value="0" required></td>
+						<td><input type="radio" name="DES_academic_work_examinations" value="1"></td>
+						<td><input type="radio" name="DES_academic_work_examinations" value="2"></td>
+						<td><input type="radio" name="DES_academic_work_examinations" value="3"></td>
+						<td><input type="radio" name="DES_academic_work_examinations" value="4"></td>
+					</tr>
+					<tr id="DES_row_29">
+						<td class="question">Lack of input in decision making process in dental school</td>
+						<td><input type="radio" name="DES_academic_work_lack_of_input" value="0" required></td>
+						<td><input type="radio" name="DES_academic_work_lack_of_input" value="1"></td>
+						<td><input type="radio" name="DES_academic_work_lack_of_input" value="2"></td>
+						<td><input type="radio" name="DES_academic_work_lack_of_input" value="3"></td>
+						<td><input type="radio" name="DES_academic_work_lack_of_input" value="4"></td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<div class="category">
 			<h2>Clinical factors</h2>
-			<div class="item"><input type="checkbox" id="DES_manual_dexterity"
-					name="DES_clinical_factors_manual_dexterity"><label for="DES_manual_dexterity">Concerns about manual
-					dexterity</label></div>
-			<div class="item"><input type="checkbox" id="DES_transition_preclinical_clinical"
-					name="DES_clinical_factors_transition_preclinical_clinical"><label
-					for="DES_transition_preclinical_clinical">Transition from preclinical to clinical</label></div>
-			<div class="item"><input type="checkbox" id="DES_learning_skills"
-					name="DES_clinical_factors_learning_skills"><label for="DES_learning_skills">Learning precision
-					manual skills</label></div>
-			<div class="item"><input type="checkbox" id="DES_clinical_requirements"
-					name="DES_clinical_factors_clinical_requirements"><label for="DES_clinical_requirements">Completing
-					clinical requirements</label></div>
-			<div class="item"><input type="checkbox" id="DES_treatment_grades"
-					name="DES_clinical_factors_treatment_grades"><label for="DES_treatment_grades">Concern about
-					treatment grades awarded</label></div>
-			<div class="item"><input type="checkbox" id="DES_staff_opinion"
-					name="DES_clinical_factors_staff_opinion"><label for="DES_staff_opinion">Difference in opinion
-					between clinical staff concerning treatment</label></div>
-			<div class="item"><input type="checkbox" id="DES_clinical_time_shortage"
-					name="DES_clinical_factors_clinical_time_shortage"><label for="DES_clinical_time_shortage">Shortage
-					of allocated clinical time</label></div>
-			<div class="item"><input type="checkbox" id="DES_patient_management"
-					name="DES_clinical_factors_patient_management"><label for="DES_patient_management">Patient
-					management</label></div>
-			<div class="item"><input type="checkbox" id="DES_clinical_decision_making"
-					name="DES_clinical_factors_clinical_decision_making"><label
-					for="DES_clinical_decision_making">Confidence in own clinical decision making</label></div>
+			<table id="DES_table_5">
+				<thead>
+					<tr>
+						<th>Stressor</th>
+						<th>Not pertinent</th>
+						<th>Not stressful</th>
+						<th>Slightly stressful</th>
+						<th>Moderately stressful</th>
+						<th>Very stressful</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr id="DES_row_30">
+						<td class="question">Concerns about manual dexterity</td>
+						<td><input type="radio" name="DES_clinical_factors_manual_dexterity" value="0" required></td>
+						<td><input type="radio" name="DES_clinical_factors_manual_dexterity" value="1"></td>
+						<td><input type="radio" name="DES_clinical_factors_manual_dexterity" value="2"></td>
+						<td><input type="radio" name="DES_clinical_factors_manual_dexterity" value="3"></td>
+						<td><input type="radio" name="DES_clinical_factors_manual_dexterity" value="4"></td>
+					</tr>
+					<tr id="DES_row_31">
+						<td class="question">Transition from preclinical to clinical</td>
+						<td><input type="radio" name="DES_clinical_factors_transition_preclinical_clinical" value="0" required></td>
+						<td><input type="radio" name="DES_clinical_factors_transition_preclinical_clinical" value="1"></td>
+						<td><input type="radio" name="DES_clinical_factors_transition_preclinical_clinical" value="2"></td>
+						<td><input type="radio" name="DES_clinical_factors_transition_preclinical_clinical" value="3"></td>
+						<td><input type="radio" name="DES_clinical_factors_transition_preclinical_clinical" value="4"></td>
+					</tr>
+					<tr id="DES_row_32">
+						<td class="question">Learning precision manual skills</td>
+						<td><input type="radio" name="DES_clinical_factors_learning_skills" value="0" required></td>
+						<td><input type="radio" name="DES_clinical_factors_learning_skills" value="1"></td>
+						<td><input type="radio" name="DES_clinical_factors_learning_skills" value="2"></td>
+						<td><input type="radio" name="DES_clinical_factors_learning_skills" value="3"></td>
+						<td><input type="radio" name="DES_clinical_factors_learning_skills" value="4"></td>
+					</tr>
+					<tr id="DES_row_33">
+						<td class="question">Completing clinical requirements</td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_requirements" value="0" required></td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_requirements" value="1"></td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_requirements" value="2"></td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_requirements" value="3"></td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_requirements" value="4"></td>
+					</tr>
+					<tr id="DES_row_34">
+						<td class="question">Concern about treatment grades awarded</td>
+						<td><input type="radio" name="DES_clinical_factors_treatment_grades" value="0" required></td>
+						<td><input type="radio" name="DES_clinical_factors_treatment_grades" value="1"></td>
+						<td><input type="radio" name="DES_clinical_factors_treatment_grades" value="2"></td>
+						<td><input type="radio" name="DES_clinical_factors_treatment_grades" value="3"></td>
+						<td><input type="radio" name="DES_clinical_factors_treatment_grades" value="4"></td>
+					</tr>
+					<tr id="DES_row_35">
+						<td class="question">Difference in opinion between clinical staff concerning treatment</td>
+						<td><input type="radio" name="DES_clinical_factors_staff_opinion" value="0" required></td>
+						<td><input type="radio" name="DES_clinical_factors_staff_opinion" value="1"></td>
+						<td><input type="radio" name="DES_clinical_factors_staff_opinion" value="2"></td>
+						<td><input type="radio" name="DES_clinical_factors_staff_opinion" value="3"></td>
+						<td><input type="radio" name="DES_clinical_factors_staff_opinion" value="4"></td>
+					</tr>
+					<tr id="DES_row_36">
+						<td class="question">Shortage of allocated clinical time</td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_time_shortage" value="0" required></td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_time_shortage" value="1"></td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_time_shortage" value="2"></td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_time_shortage" value="3"></td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_time_shortage" value="4"></td>
+					</tr>
+					<tr id="DES_row_37">
+						<td class="question">Patient management</td>
+						<td><input type="radio" name="DES_clinical_factors_patient_management" value="0" required></td>
+						<td><input type="radio" name="DES_clinical_factors_patient_management" value="1"></td>
+						<td><input type="radio" name="DES_clinical_factors_patient_management" value="2"></td>
+						<td><input type="radio" name="DES_clinical_factors_patient_management" value="3"></td>
+						<td><input type="radio" name="DES_clinical_factors_patient_management" value="4"></td>
+					</tr>
+					<tr id="DES_row_38">
+						<td class="question">Confidence in own clinical decision making</td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_decision_making" value="0" required></td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_decision_making" value="1"></td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_decision_making" value="2"></td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_decision_making" value="3"></td>
+						<td><input type="radio" name="DES_clinical_factors_clinical_decision_making" value="4"></td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<button class="submit-btn" type="button" onclick="DES_next('DASS_21_form')">Next...</button>
 		<script>
 			function DES_next(next) {
+
+				if (!isFormValid("DES_form")) {
+					alert("Please provide valid input for all the required fields marked with red!");
+					return;
+				}
+
 				appendFormData("DES_form");
 				document.getElementById("DES_form").classList.add('hidden');
 				document.getElementById(next).classList.remove('hidden');
@@ -1165,6 +1558,9 @@
 				<input type="radio" id="Canabis_never_used" name="Substances_Canabis_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('Canabis')" required>
 				<label for="Canabis_never_used">Never used</label><br />
+				<input type="radio" id="Canabis_only_tried_once" name="Substances_Canabis_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('Canabis')" required>
+				<label for="Canabis_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="Canabis_elementary" name="Substances_Canabis_first_use" value="Elementary"
 					onchange="Substances_showDetails('Canabis')">
 				<label for="Canabis_elementary">During elementary school</label><br />
@@ -1215,7 +1611,7 @@
 					<label for="Canabis_dosage">Please indicate the dosage:</label>
 					<input type="text" id="Canabis_dosage" name="Substances_Canabis_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="Canabis_exam" name="Substances_Canabis_pattern_exam">
 					<label for="Canabis_exam">During exam period</label><br />
@@ -1228,7 +1624,7 @@
 					<input type="checkbox" id="Canabis_home" name="Substances_Canabis_pattern_home">
 					<label for="Canabis_home">At home</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class=>
 					<legend>Changes in substance use</legend>
 					<input type="radio" id="Canabis_continuous_increase" name="Substances_Canabis_changes"
 						value="ContinousIncrease">
@@ -1244,7 +1640,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="Canabis_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="Canabis_partying" name="Substances_Canabis_reason_partying">
 					<label for="Canabis_partying">Partying drugged</label><br />
@@ -1282,6 +1678,9 @@
 				<input type="radio" id="Extasy_never_used" name="Substances_Extasy_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('Extasy')" required>
 				<label for="Extasy_never_used">Never used</label><br />
+				<input type="radio" id="Extasy_only_tried_once" name="Substances_Extasy_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('Extasy')" required>
+				<label for="Extasy_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="Extasy_elementary" name="Substances_Extasy_first_use" value="Elementary"
 					onchange="Substances_showDetails('Extasy')">
 				<label for="Extasy_elementary">During elementary school</label><br />
@@ -1332,7 +1731,7 @@
 					<label for="Extasy_dosage">Please indicate the dosage:</label>
 					<input type="text" id="Extasy_dosage" name="Substances_Extasy_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="Extasy_exam" name="Substances_Extasy_pattern_exam">
 					<label for="Extasy_exam">During exam period</label><br />
@@ -1361,7 +1760,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="Extasy_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="Extasy_partying" name="Substances_Extasy_reason_partying">
 					<label for="Extasy_partying">Partying drugged</label><br />
@@ -1397,6 +1796,9 @@
 				<input type="radio" id="Speed_never_used" name="Substances_Speed_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('Speed')" required>
 				<label for="Speed_never_used">Never used</label><br />
+				<input type="radio" id="Speed_only_tried_once" name="Substances_Speed_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('Speed')" required>
+				<label for="Speed_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="Speed_elementary" name="Substances_Speed_first_use" value="Elementary"
 					onchange="Substances_showDetails('Speed')">
 				<label for="Speed_elementary">During elementary school</label><br />
@@ -1447,7 +1849,7 @@
 					<label for="Speed_dosage">Please indicate the dosage:</label>
 					<input type="text" id="Speed_dosage" name="Substances_Speed_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="Speed_exam" name="Substances_Speed_pattern_exam">
 					<label for="Speed_exam">During exam period</label><br />
@@ -1476,7 +1878,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="Speed_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="Speed_partying" name="Substances_Speed_reason_partying">
 					<label for="Speed_partying">Partying drugged</label><br />
@@ -1512,6 +1914,9 @@
 				<input type="radio" id="Cocaine_never_used" name="Substances_Cocaine_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('Cocaine')" required>
 				<label for="Cocaine_never_used">Never used</label><br />
+				<input type="radio" id="Cocaine_only_tried_once" name="Substances_Cocaine_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('Cocaine')" required>
+				<label for="Cocaine_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="Cocaine_elementary" name="Substances_Cocaine_first_use" value="Elementary"
 					onchange="Substances_showDetails('Cocaine')">
 				<label for="Cocaine_elementary">During elementary school</label><br />
@@ -1562,7 +1967,7 @@
 					<label for="Cocaine_dosage">Please indicate the dosage:</label>
 					<input type="text" id="Cocaine_dosage" name="Substances_Cocaine_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="Cocaine_exam" name="Substances_Cocaine_pattern_exam">
 					<label for="Cocaine_exam">During exam period</label><br />
@@ -1591,7 +1996,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="Cocaine_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="Cocaine_partying" name="Substances_Cocaine_reason_partying">
 					<label for="Cocaine_partying">Partying drugged</label><br />
@@ -1629,6 +2034,9 @@
 				<input type="radio" id="LSD_never_used" name="Substances_LSD_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('LSD')" required>
 				<label for="LSD_never_used">Never used</label><br />
+				<input type="radio" id="LSD_only_tried_once" name="Substances_LSD_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('LSD')" required>
+				<label for="LSD_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="LSD_elementary" name="Substances_LSD_first_use" value="Elementary"
 					onchange="Substances_showDetails('LSD')">
 				<label for="LSD_elementary">During elementary school</label><br />
@@ -1677,7 +2085,7 @@
 					<label for="LSD_dosage">Please indicate the dosage:</label>
 					<input type="text" id="LSD_dosage" name="Substances_LSD_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="LSD_exam" name="Substances_LSD_pattern_exam">
 					<label for="LSD_exam">During exam period</label><br />
@@ -1706,7 +2114,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="LSD_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="LSD_partying" name="Substances_LSD_reason_partying">
 					<label for="LSD_partying">Partying drugged</label><br />
@@ -1741,6 +2149,9 @@
 				<input type="radio" id="Mushrooms_never_used" name="Substances_Mushrooms_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('Mushrooms')" required>
 				<label for="Mushrooms_never_used">Never used</label><br />
+				<input type="radio" id="Mushrooms_only_tried_once" name="Substances_Mushrooms_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('Mushrooms')" required>
+				<label for="Mushrooms_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="Mushrooms_elementary" name="Substances_Mushrooms_first_use" value="Elementary"
 					onchange="Substances_showDetails('Mushrooms')">
 				<label for="Mushrooms_elementary">During elementary school</label><br />
@@ -1792,7 +2203,7 @@
 					<label for="Mushrooms_dosage">Please indicate the dosage:</label>
 					<input type="text" id="Mushrooms_dosage" name="Substances_Mushrooms_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="Mushrooms_exam" name="Substances_Mushrooms_pattern_exam">
 					<label for="Mushrooms_exam">During exam period</label><br />
@@ -1821,7 +2232,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="Mushrooms_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="Mushrooms_partying" name="Substances_Mushrooms_reason_partying">
 					<label for="Mushrooms_partying">Partying drugged</label><br />
@@ -1862,6 +2273,9 @@
 				<input type="radio" id="PCP_never_used" name="Substances_PCP_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('PCP')" required>
 				<label for="PCP_never_used">Never used</label><br />
+				<input type="radio" id="PCP_only_tried_once" name="Substances_PCP_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('PCP')" required>
+				<label for="PCP_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="PCP_elementary" name="Substances_PCP_first_use" value="Elementary"
 					onchange="Substances_showDetails('PCP')">
 				<label for="PCP_elementary">During elementary school</label><br />
@@ -1910,7 +2324,7 @@
 					<label for="PCP_dosage">Please indicate the dosage:</label>
 					<input type="text" id="PCP_dosage" name="Substances_PCP_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="PCP_exam" name="Substances_PCP_pattern_exam">
 					<label for="PCP_exam">During exam period</label><br />
@@ -1939,7 +2353,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="PCP_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="PCP_partying" name="Substances_PCP_reason_partying">
 					<label for="PCP_partying">Partying drugged</label><br />
@@ -1974,6 +2388,9 @@
 				<input type="radio" id="Ketamine_never_used" name="Substances_Ketamine_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('Ketamine')" required>
 				<label for="Ketamine_never_used">Never used</label><br />
+				<input type="radio" id="Ketamine_only_tried_once" name="Substances_Ketamine_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('Ketamine')" required>
+				<label for="Ketamine_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="Ketamine_elementary" name="Substances_Ketamine_first_use" value="Elementary"
 					onchange="Substances_showDetails('Ketamine')">
 				<label for="Ketamine_elementary">During elementary school</label><br />
@@ -2025,7 +2442,7 @@
 					<label for="Ketamine_dosage">Please indicate the dosage:</label>
 					<input type="text" id="Ketamine_dosage" name="Substances_Ketamine_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="Ketamine_exam" name="Substances_Ketamine_pattern_exam">
 					<label for="Ketamine_exam">During exam period</label><br />
@@ -2054,7 +2471,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="Ketamine_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="Ketamine_partying" name="Substances_Ketamine_reason_partying">
 					<label for="Ketamine_partying">Partying drugged</label><br />
@@ -2094,6 +2511,9 @@
 				<input type="radio" id="Mephedrone_never_used" name="Substances_Mephedrone_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('Mephedrone')" required>
 				<label for="Mephedrone_never_used">Never used</label><br />
+				<input type="radio" id="Mephedrone_only_tried_once" name="Substances_Mephedrone_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('Mephedrone')" required>
+				<label for="Mephedrone_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="Mephedrone_elementary" name="Substances_Mephedrone_first_use" value="Elementary"
 					onchange="Substances_showDetails('Mephedrone')">
 				<label for="Mephedrone_elementary">During elementary school</label><br />
@@ -2145,7 +2565,7 @@
 					<label for="Mephedrone_dosage">Please indicate the dosage:</label>
 					<input type="text" id="Mephedrone_dosage" name="Substances_Mephedrone_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="Mephedrone_exam" name="Substances_Mephedrone_pattern_exam">
 					<label for="Mephedrone_exam">During exam period</label><br />
@@ -2175,7 +2595,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="Mephedrone_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="Mephedrone_partying" name="Substances_Mephedrone_reason_partying">
 					<label for="Mephedrone_partying">Partying drugged</label><br />
@@ -2217,6 +2637,9 @@
 				<input type="radio" id="GBH_never_used" name="Substances_GBH_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('GBH')" required>
 				<label for="GBH_never_used">Never used</label><br />
+				<input type="radio" id="GBH_only_tried_once" name="Substances_GBH_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('GBH')" required>
+				<label for="GBH_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="GBH_elementary" name="Substances_GBH_first_use" value="Elementary"
 					onchange="Substances_showDetails('GBH')">
 				<label for="GBH_elementary">During elementary school</label><br />
@@ -2265,7 +2688,7 @@
 					<label for="GBH_dosage">Please indicate the dosage:</label>
 					<input type="text" id="GBH_dosage" name="Substances_GBH_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="GBH_exam" name="Substances_GBH_pattern_exam">
 					<label for="GBH_exam">During exam period</label><br />
@@ -2294,7 +2717,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="GBH_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="GBH_partying" name="Substances_GBH_reason_partying">
 					<label for="GBH_partying">Partying drugged</label><br />
@@ -2329,6 +2752,9 @@
 				<input type="radio" id="StudyDrugs_never_used" name="Substances_StudyDrugs_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('StudyDrugs')" required>
 				<label for="StudyDrugs_never_used">Never used</label><br />
+				<input type="radio" id="StudyDrugs_only_tried_once" name="Substances_StudyDrugs_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('StudyDrugs')" required>
+				<label for="StudyDrugs_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="StudyDrugs_elementary" name="Substances_StudyDrugs_first_use" value="Elementary"
 					onchange="Substances_showDetails('StudyDrugs')">
 				<label for="StudyDrugs_elementary">During elementary school</label><br />
@@ -2380,7 +2806,7 @@
 					<label for="StudyDrugs_dosage">Please indicate the dosage:</label>
 					<input type="text" id="StudyDrugs_dosage" name="Substances_StudyDrugs_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="StudyDrugs_exam" name="Substances_StudyDrugs_pattern_exam">
 					<label for="StudyDrugs_exam">During exam period</label><br />
@@ -2410,7 +2836,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="StudyDrugs_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="StudyDrugs_partying" name="Substances_StudyDrugs_reason_partying">
 					<label for="StudyDrugs_partying">Partying drugged</label><br />
@@ -2452,6 +2878,9 @@
 				<input type="radio" id="Tranquillisers_never_used" name="Substances_Tranquillisers_first_use"
 					value="NeverUsed" onchange="Substances_hideDetails('Tranquillisers')" required>
 				<label for="Tranquillisers_never_used">Never used</label><br />
+				<input type="radio" id="Tranquillisers_only_tried_once" name="Substances_Tranquillisers_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('Tranquillisers')" required>
+				<label for="Tranquillisers_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="Tranquillisers_elementary" name="Substances_Tranquillisers_first_use"
 					value="Elementary" onchange="Substances_showDetails('Tranquillisers')">
 				<label for="Tranquillisers_elementary">During elementary school</label><br />
@@ -2515,7 +2944,7 @@
 					<label for="Tranquillisers_dosage">Please indicate the dosage:</label>
 					<input type="text" id="Tranquillisers_dosage" name="Substances_Tranquillisers_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="Tranquillisers_exam" name="Substances_Tranquillisers_pattern_exam">
 					<label for="Tranquillisers_exam">During exam period</label><br />
@@ -2551,7 +2980,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="Tranquillisers_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="Tranquillisers_partying"
 						name="Substances_Tranquillisers_reason_partying">
@@ -2595,6 +3024,9 @@
 				<input type="radio" id="Alcohol_never_used" name="Substances_Alcohol_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('Alcohol')" required>
 				<label for="Alcohol_never_used">Never used</label><br />
+				<input type="radio" id="Alcohol_only_tried_once" name="Substances_Alcohol_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('Alcohol')" required>
+				<label for="Alcohol_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="Alcohol_elementary" name="Substances_Alcohol_first_use" value="Elementary"
 					onchange="Substances_showDetails('Alcohol')">
 				<label for="Alcohol_elementary">During elementary school</label><br />
@@ -2645,7 +3077,7 @@
 					<label for="Alcohol_dosage">Please indicate the dosage:</label>
 					<input type="text" id="Alcohol_dosage" name="Substances_Alcohol_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="Alcohol_exam" name="Substances_Alcohol_pattern_exam">
 					<label for="Alcohol_exam">During exam period</label><br />
@@ -2674,7 +3106,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="Alcohol_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="Alcohol_partying" name="Substances_Alcohol_reason_partying">
 					<label for="Alcohol_partying">Partying drugged</label><br />
@@ -2712,6 +3144,9 @@
 				<input type="radio" id="Other_never_used" name="Substances_Other_first_use" value="NeverUsed"
 					onchange="Substances_hideDetails('Other')" required>
 				<label for="Other_never_used">Never used</label><br />
+				<input type="radio" id="Other_only_tried_once" name="Substances_Other_first_use" value="OnlyTriedOnce"
+					onchange="Substances_hideDetails('Other')" required>
+				<label for="Other_only_tried_once">I have only tried it once in my life</label><br />
 				<input type="radio" id="Other_elementary" name="Substances_Other_first_use" value="Elementary"
 					onchange="Substances_showDetails('Other')">
 				<label for="Other_elementary">During elementary school</label><br />
@@ -2767,7 +3202,7 @@
 					<label for="Other_dosage">Please indicate the dosage:</label>
 					<input type="text" id="Other_dosage" name="Substances_Other_dosage"><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Pattern of substance use</legend>
 					<input type="checkbox" id="Other_exam" name="Substances_Other_pattern_exam">
 					<label for="Other_exam">During exam period</label><br />
@@ -2796,7 +3231,7 @@
 						value="ContinousDecreaseLastTwoYears">
 					<label for="Other_decrease">Decreased in the last 2 years</label><br />
 				</fieldset>
-				<fieldset>
+				<fieldset class="Mandatory">
 					<legend>Reason of substance use</legend>
 					<input type="checkbox" id="Other_partying" name="Substances_Other_reason_partying">
 					<label for="Other_partying">Partying drugged</label><br />
@@ -2878,8 +3313,8 @@
 					<!-- Answer headers will be generated here -->
 					<th>Completely untrue of me</th>
 					<th>Mostly untrue of me</th>
+					<th>Slightly more true than untrue</th>
 					<th>Moderately true of me</th>
-					<th>Mostly true of me</th>
 					<th>Mostly true of me</th>
 					<th>Describes me perfectly</th>
 				</tr>
