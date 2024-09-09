@@ -1059,19 +1059,21 @@
 		</div>
 		<button class="submit-btn" type="button" onclick="nextClicked(this)">Next...</button>
 	</form>
-	<form id="DES_form" >
+	<form id="DES_form" class="hidden">
 		<h1>DES: Modified Dental Environment Stress Questionnaire items and Domains</h1>
 		<p>
 			<strong>Instructions:</strong>
 			The academic environment is a challenge for dental students due to the multiple sources of stress 
 			they face. Please indicate how much each option applies to you:
-			<ol start="0">
-				<li>Not pertinent</li>
-				<li>Not stressful</li>
-				<li>Slightly stressful</li>
-				<li>Moderately stressful</li>
-				<li>Very stressful</li>
-			</ol>
+			<strong>
+				<ol start="0">
+					<li>Not pertinent</li>
+					<li>Not stressful</li>
+					<li>Slightly stressful</li>
+					<li>Moderately stressful</li>
+					<li>Very stressful</li>
+				</ol>
+			</strong>
 		</p>
 		<div class="category">
 			<h2>Living accommodation</h2>
@@ -1127,12 +1129,12 @@
 			<table id="DES_table_2">
 				<thead>
 					<tr>
-						<th>Stressor</th>
-						<th>Not pertinent</th>
-						<th>Not stressful</th>
-						<th>Slightly stressful</th>
-						<th>Moderately stressful</th>
-						<th>Very stressful</th>
+						<th>#</th>
+						<th>0</th>
+						<th>1</th>
+						<th>2</th>
+						<th>3</th>
+						<th>4</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -1248,12 +1250,12 @@
 			<table id="DES_table_3">
 				<thead>
 					<tr>
-						<th>Stressor</th>
-						<th>Not pertinent</th>
-						<th>Not stressful</th>
-						<th>Slightly stressful</th>
-						<th>Moderately stressful</th>
-						<th>Very stressful</th>
+						<th>#</th>
+						<th>0</th>
+						<th>1</th>
+						<th>2</th>
+						<th>3</th>
+						<th>4</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -1305,12 +1307,12 @@
 			<table id="DES_table_4">
 				<thead>
 					<tr>
-						<th>Stressor</th>
-						<th>Not pertinent</th>
-						<th>Not stressful</th>
-						<th>Slightly stressful</th>
-						<th>Moderately stressful</th>
-						<th>Very stressful</th>
+						<th>#</th>
+						<th>0</th>
+						<th>1</th>
+						<th>2</th>
+						<th>3</th>
+						<th>4</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -1386,12 +1388,12 @@
 			<table id="DES_table_5">
 				<thead>
 					<tr>
-						<th>Stressor</th>
-						<th>Not pertinent</th>
-						<th>Not stressful</th>
-						<th>Slightly stressful</th>
-						<th>Moderately stressful</th>
-						<th>Very stressful</th>
+						<th>#</th>
+						<th>0</th>
+						<th>1</th>
+						<th>2</th>
+						<th>3</th>
+						<th>4</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -1477,18 +1479,26 @@
 		<p>
 			<strong>Instructions:</strong>
 			Please read each statement and select the answer which indicates how much the statement applied to you
-			<strong>over the past week</strong>.
-			There are no right or wrong answers.
-			Do not spend too much time on any statement.
+			<strong>over the past week</strong>:
+			<strong>
+				<ol start="0">
+					<li>Did not apply to me at all</li>
+					<li>Applied to me to some degree, or some of the time</li>
+					<li>Applied to me to a considerable degree or a good part of time</li>
+					<li>Applied to me very much or most of the time</li>
+				</ol>
+			</strong>
+			<em>There are no right or wrong answers.<br />
+			Do not spend too much time on any statement.</em>
 		</p>
 		<table id="DASS_21_table">
 			<thead>
 				<tr>
-					<th>Question</th>
-					<th>Did not apply to me at all</th>
-					<th>Applied to me to some degree, or some of the time</th>
-					<th>Applied to me to a considerable degree or a good part of time</th>
-					<th>Applied to me very much or most of the time</th>
+					<th>#</th>
+					<th>0</th>
+					<th>1</th>
+					<th>2</th>
+					<th>3</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -3402,7 +3412,7 @@
 			};
 		</script>
 	</form>
-	<form id="YSQ_S3_form" class="hidden">
+	<form id="YSQ_S3_form" class="hidden0">
 		<h1>YSQ-S3</h1>
 		<p>
 			<strong>Instructions:</strong> Listed below are statements that
@@ -3421,18 +3431,28 @@
 			</em>
 		</p>
 		<p>
-			Select the answer that best describes you.
+			Select the answer that best describes you:
+			<strong>
+				<ol start="1">
+					<li>Completely untrue of me</li>
+					<li>Mostly untrue of me</li>
+					<li>Slightly more true than untrue</li>
+					<li>Moderately true of me</li>
+					<li>Mostly true of me</li>
+					<li>Describes me perfectly</li>
+				</ol>
+			</strong>
 		</p>
 		<table>
 			<thead>
 				<tr id="YSQ_S3_headerRow">
-					<th>Question</th>
-					<th>Completely untrue of me</th>
-					<th>Mostly untrue of me</th>
-					<th>Slightly more true than untrue</th>
-					<th>Moderately true of me</th>
-					<th>Mostly true of me</th>
-					<th>Describes me perfectly</th>
+					<th>#</th>
+					<th>1</th>
+					<th>2</th>
+					<th>3</th>
+					<th>4</th>
+					<th>5</th>
+					<th>6</th>
 				</tr>
 			</thead>
 			<tbody id="YSQ_S3_tableBody">
