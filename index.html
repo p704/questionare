@@ -235,8 +235,10 @@
 		const isValid = (element) => {
 			let valid = true;
 			const tagName = element.tagName.toLowerCase();
-	
-			if (tagName === 'input') {
+
+			if (element.classList.contains('Optional')) {
+				valid = true;
+			} else if (tagName === 'input') {
 				const type = element.type.toLowerCase();
 				switch (type) {
 					case 'checkbox':
@@ -541,16 +543,17 @@
 			<strong>11. Investigators:</strong>
 			<div class="custom-div">
 				<table>
-					<tr><td>Komlós György PhD</td><td>assistant professor</td></tr>
-					<tr><td>Körmöczi Kinga Renáta PhD</td><td>assistant professor</td></tr>
-					<tr><td>Simon Viktória PhD</td><td>assistant professor</td></tr>
-					<tr><td>Simon Lajos PhD</td><td>associate professor</td></tr>
-					<tr><td>Pelyhe Liza PhD</td><td>independent researcher</td></tr>
+					<tr><td><strong>Principal Investigator:</strong></td><td>György Komlós PhD, assistant professor</td></tr>
+					<tr><td><strong>Investigators:</strong></td><td>Kinga Renáta Körmöczi PhD, assistant professor</td></tr>
+					<tr><td></td><td>Liza Pelyhe PhD</td></tr>
+					<tr><td></td><td>Ferenc Péter Kadlecsik</td></tr>
+					<tr><td><strong>Study Coordinators:</strong></td><td>Lajos Simon PhD, associate professor</td></tr>
+					<tr><td></td><td>Viktória Simon PhD, assistant professor</td></tr>
 				</table>
 			</div>
 		</p>
 		<p>
-			<strong>12. Ethics Committee Approval Nbr.: <em>!!! TBD !!!</em></strong>
+			<strong>12. Ethics Committee Approval Nbr.: <em>BM/9064-3/2024</em></strong>
 		</p>
 		<p>
 			<strong>13. Contact information:</strong> If you have any questions or require further information about the
@@ -647,7 +650,10 @@
 		<div class="custom-div">
 			<table>
 				<tr><td><strong>Principal Investigator:</strong></td><td>György Komlós PhD, assistant professor</td></tr>
-				<tr><td><strong>Study Coordinators:</strong></td><td>Lajos Simon PhD, associate professor and</td></tr>
+				<tr><td><strong>Investigators:</strong></td><td>Kinga Renáta Körmöczi PhD, assistant professor</td></tr>
+				<tr><td></td><td>Liza Pelyhe PhD</td></tr>
+				<tr><td></td><td>Ferenc Péter Kadlecsik</td></tr>
+				<tr><td><strong>Study Coordinators:</strong></td><td>Lajos Simon PhD, associate professor</td></tr>
 				<tr><td></td><td>Viktória Simon PhD, assistant professor</td></tr>
 			</table>
 		</div>
@@ -665,7 +671,7 @@
 			<strong>Contact information</strong>: If you have any questions or concerns about the study, please
 			contact:<br />
 			Principal Investigator: György Komlós PhD, assistant professor<br />
-			Contact Information: <a href="mailto:gyorgykomlos89@gmail.com">gyorgykomlos89@gmail.com</a>, +36-1-266-0457
+			Contact Information: <a href="mailto:komlos.gyorgy@semmelweis.hu">komlos.gyorgy@semmelweis.hu</a>, +36-1-266-0457
 			(55895)
 		</p>
 		<p>
@@ -699,24 +705,24 @@
 				/* checkbox1 */
 				{
 					const input = document.getElementById('Consent_checkbox1');
-					const classList = document.getElementById('Consent_checkbox1_div').classList;
+					const div = document.getElementById('Consent_checkbox1_div');
 					if (!input.checked) {
 						allValid = false;
-						setValid(classList, false);
+						setValid(div, false);
 					} else {
-						setValid(classList, true);
+						setValid(div, true);
 					}
 				}
 
 				/* checkbox2 */
 				{
 					const input = document.getElementById('Consent_checkbox2');
-					const classList = document.getElementById('Consent_checkbox2_div').classList;
+					const div = document.getElementById('Consent_checkbox2_div');
 					if (!input.checked) {
 						allValid = false;
-						setValid(classList, false);
+						setValid(div, false);
 					} else {
-						setValid(classList, true);
+						setValid(div, true);
 					}
 				}
 
@@ -3019,7 +3025,7 @@
 			<fieldset id="Tranquillisers_substance" class="hidden">
 				<legend>Substance</legend>
 				<label for="Tranquillisers_other">Name:</label>
-				<input type="text" id="Tranquillisers_other" name="Substances_Tranquillisers_name"><br />
+				<input type="text" id="Tranquillisers_other" name="Substances_Tranquillisers_name" class="Optional"><br />
 			</fieldset>
 			<div id="Tranquillisers_details" class="hidden">
 				<fieldset>
@@ -3283,7 +3289,7 @@
 			<fieldset id="Other_substance" class="hidden">
 				<legend>Substance</legend>
 				<label for="Other_other">Name:</label>
-				<input type="text" id="Other_other" name="Substances_Other_name"><br />
+				<input type="text" id="Other_other" name="Substances_Other_name" class="Optional"><br />
 			</fieldset>
 			<div id="Other_details" class="hidden">
 				<fieldset>
