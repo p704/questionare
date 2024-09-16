@@ -126,11 +126,122 @@
 		.invalid {
 			background-color: #ffdddd;
 		}
+
+		.card-container {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 16px; /* Space between cards */
+		}
+
+		.card {
+			background-color: white;
+			border: 1px solid #ddd;
+			border-radius: 8px;
+			padding: 16px;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+			width: 100%; /* Full width on smaller screens */
+			margin: 8px 0; /* Vertical margin between cards */
+			box-sizing: border-box; /* Include padding and border in the width */
+		}
+
+		/* Adjust card width for larger screens */
+		@media (min-width: 768px) {
+			.card-container {
+				justify-content: flex-start; /* Align items to the start */
+			}
+			.card {
+				width: calc(50% - 16px); /* Two cards per row on medium screens */
+			}
+		}
+
+		@media (min-width: 1024px) {
+			.card {
+				width: calc(33.33% - 16px); /* Three cards per row on large screens */
+			}
+		}
 	</style>
 </head>
 
 <body>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+	<script>
+		function convertTablesToCards() {
+		  // Select all tables on the page
+		  const tables = document.querySelectorAll('table');
+		
+		  tables.forEach((table) => {
+			if (!table.classList.contains('FormTable')) {
+			  return;
+			}
+
+			// Create a container for the cards
+			const cardContainer = document.createElement('div');
+			cardContainer.classList.add('card-container');
+		
+			// Get table headers
+			const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+		
+			// Process each row in the table body
+			table.querySelectorAll('tbody tr').forEach(row => {
+			  // Create a card element
+			  const card = document.createElement('div');
+			  card.classList.add('card');
+		
+			  // Create a card content container
+			  const cardContent = document.createElement('div');
+			  cardContent.classList.add('card-content');
+		
+			  // Populate card content using table row data
+			  row.querySelectorAll('td').forEach((cell, index) => {
+				const p = document.createElement('p');
+				
+				if (headers[index]) {
+					// Clone all child elements of the cell and append them to the card
+					Array.from(cell.childNodes).forEach(child => {
+						p.appendChild(child.cloneNode(true));
+					});
+					const span = document.createElement('em');
+					span.textContent = headers[index];
+					p.appendChild(span);
+				} else {
+					const strong = document.createElement('strong');
+					// Clone all child elements of the cell and append them to the card
+					Array.from(cell.childNodes).forEach(child => {
+						strong.appendChild(child.cloneNode(true));
+					});
+					p.appendChild(strong);
+				}
+				cardContent.appendChild(p);
+			  });
+		
+			  card.appendChild(cardContent);
+			  cardContainer.appendChild(card);
+			});
+		
+			// Insert the card container after the table
+			table.parentNode.insertBefore(cardContainer, table);
+		
+			// Remove the original table
+			table.remove();
+		  });
+		}
+		
+		// Run the function after the DOM is fully loaded
+		document.addEventListener('DOMContentLoaded', checkScreenSize);
+
+		// Function to check screen size and run conversion
+		function checkScreenSize() {
+			if (window.matchMedia('(max-width: 768px)').matches) {
+				convertTablesToCards();
+			}
+		}
+
+		// Run the function after the DOM is fully loaded and check the screen size
+		document.addEventListener('DOMContentLoaded', checkScreenSize);
+
+		// Listen for window resize to check screen size dynamically
+		window.addEventListener('resize', checkScreenSize);
+	</script>
 	<script>
 		let formData = [];
 	
@@ -361,26 +472,18 @@
 		<p>
 			<strong>Instructions:</strong>
 			Please read each statement and select the answer which indicates how much the statement applied to you
-			<strong>over the past week</strong>:
-			<strong>
-				<ol start="0">
-					<li>Did not apply to me at all</li>
-					<li>Applied to me to some degree, or some of the time</li>
-					<li>Applied to me to a considerable degree or a good part of time</li>
-					<li>Applied to me very much or most of the time</li>
-				</ol>
-			</strong>
+			<strong>over the past week</strong>.
 			<em>There are no right or wrong answers.<br />
 			Do not spend too much time on any statement.</em>
 		</p>
-		<table id="DASS_21_table">
+		<table id="DASS_21_table" class="FormTable">
 			<thead>
 				<tr>
-					<th>#</th>
-					<th>0</th>
-					<th>1</th>
-					<th>2</th>
-					<th>3</th>
+					<th></th>
+					<th>Did not apply to me at all</th>
+					<th>Applied to me to some degree, or some of the time</th>
+					<th>Applied to me to a considerable degree or a good part of time</th>
+					<th>Applied to me very much or most of the time</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -605,28 +708,18 @@
 			</em>
 		</p>
 		<p>
-			Select the answer that best describes you:
-			<strong>
-				<ol start="1">
-					<li>Completely untrue of me</li>
-					<li>Mostly untrue of me</li>
-					<li>Slightly more true than untrue</li>
-					<li>Moderately true of me</li>
-					<li>Mostly true of me</li>
-					<li>Describes me perfectly</li>
-				</ol>
-			</strong>
+			Select the answer that best describes you.
 		</p>
-		<table>
+		<table class="FormTable">
 			<thead>
 				<tr id="YSQ_S3_headerRow">
-					<th>#</th>
-					<th>1</th>
-					<th>2</th>
-					<th>3</th>
-					<th>4</th>
-					<th>5</th>
-					<th>6</th>
+					<th></th>
+					<th>Completely untrue of me</th>
+					<th>Mostly untrue of me</th>
+					<th>Slightly more true than untrue</th>
+					<th>Moderately true of me</th>
+					<th>Mostly true of me</th>
+					<th>Describes me perfectly</th>
 				</tr>
 			</thead>
 			<tbody id="YSQ_S3_tableBody">
