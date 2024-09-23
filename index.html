@@ -317,8 +317,8 @@
 		window.addEventListener('resize', checkScreenSize);
 	</script>
 	<script>
-		let formData = [];
-	
+		const clientId = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+
 		const isVisible = (element) => element.offsetWidth > 0 && element.offsetHeight > 0;
 
 		const setVisible = (element, visible) => {
@@ -449,10 +449,6 @@
 			return false;
 		};
 	
-		const appendFormData = (form) => {
-			collectFormData(form, formData);
-		};
-	
 		const saveAsPdf = () => {
 			const element = document.getElementById('PDF');
 	
@@ -481,7 +477,12 @@
 				.save();
 		};
 	
-		const collectFormData = (form, result = []) => {
+		const collectFormData = (form) => {
+			let result = {
+				"clientId": clientId,
+				"data": {}
+			};
+
 			const visited = new Set();
 	
 			for (const element of form.elements) {
@@ -504,8 +505,8 @@
 							break;
 					}
 				}
-	
-				result.push([element.name, elementValue]);
+				
+				result.data[element.name] = elementValue;
 			}
 	
 			return result;
@@ -554,7 +555,7 @@
 				alert('Please provide valid input for all the required fields marked with red!');
 				return;
 			}
-			appendFormData(form);
+			submitData(collectFormData(form));
 			switchToNextForm();
 			if (typeof action === 'function') {
 				action();
@@ -566,9 +567,9 @@
 			window.scrollTo(0, 0);
 		};
 	
-		const submitData = async () => {
+		const submitData = async (formData) => {
 			try {
-				const response = await fetch('https://script.google.com/macros/s/AKfycbz9EC1UbwHsLals9CW3v2iug0LS1iRlhNA-xR8r-Jw4l6i6L4C_XM4fdVz-YR9PyxLU7g/exec', {
+				const response = await fetch('https://script.google.com/macros/s/AKfycbxgMwLHs2L5ATunwalUtyPjteT4IHduD1x-9dTCZwr1sp0-iywehEvZRLOJ_RkdTeFvug/exec', {
 					method: 'POST',
 					body: JSON.stringify(formData),
 					headers: {
@@ -576,9 +577,7 @@
 					}
 				});
 				const data = await response.json();
-				if (data.status === 'success') {
-					alert('Data submitted successfully!');
-				} else {
+				if (data.status !== 'success') {
 					console.error('Error submitting data.');
 				}
 			} catch (error) {
@@ -3530,7 +3529,7 @@
 			};
 		</script>
 	</form>
-	<form id="YSQ_S3_form" class="hidden">
+	<form id="YSQ_S3_form_1" class="hidden">
 		<h1>YSQ-S3</h1>
 		<p>
 			<strong>Instructions:</strong> Listed below are statements that
@@ -3852,6 +3851,44 @@
 					<td><input type="radio" name="YSQ_S3_question_30" value="5"></td>
 					<td><input type="radio" name="YSQ_S3_question_30" value="6"></td>
 				</tr>
+			</tbody>
+		</table>
+		<button class="submit-btn" type="button" onclick="nextClicked(this)">Next...</button>
+	</form>
+	<form id="YSQ_S3_form_2" class="hidden">
+		<h1>YSQ-S3</h1>
+		<p>
+			<strong>Instructions:</strong> Listed below are statements that
+			people might use to describe themselves. Please read each statement,
+			then rate it based on how accurately it fits you over the past year.
+			When you are not sure, base your answer on what you emotionally feel,
+			not on what you think to be true.
+		</p>
+		<p>
+			<em>
+				A few of the items ask about your relationships with your parents
+				or romantic partners. If any of these people have died, please answer
+				these items based on your relationships when they were alive. If you do
+				not currently have a partner but have had partners in the past, please
+				answer the item based on your. most recent significant romantic partner.
+			</em>
+		</p>
+		<p>
+			Select the answer that best describes you.
+		</p>
+		<table class="FormTable">
+			<thead>
+				<tr id="YSQ_S3_headerRow">
+					<th></th>
+					<th>Completely untrue of me</th>
+					<th>Mostly untrue of me</th>
+					<th>Slightly more true than untrue</th>
+					<th>Moderately true of me</th>
+					<th>Mostly true of me</th>
+					<th>Describes me perfectly</th>
+				</tr>
+			</thead>
+			<tbody id="YSQ_S3_tableBody">
 				<tr id="YSQ_S3_row_31">
 					<td class="question">31. I try to do my best; I can’t settle for “good enough.”</td>
 					<td><input type="radio" name="YSQ_S3_question_31" value="1" required></td>
@@ -4131,6 +4168,44 @@
 					<td><input type="radio" name="YSQ_S3_question_60" value="5"></td>
 					<td><input type="radio" name="YSQ_S3_question_60" value="6"></td>
 				</tr>
+			</tbody>
+		</table>
+		<button class="submit-btn" type="button" onclick="nextClicked(this)">Next...</button>
+	</form>
+	<form id="YSQ_S3_form_3" class="hidden">
+		<h1>YSQ-S3</h1>
+		<p>
+			<strong>Instructions:</strong> Listed below are statements that
+			people might use to describe themselves. Please read each statement,
+			then rate it based on how accurately it fits you over the past year.
+			When you are not sure, base your answer on what you emotionally feel,
+			not on what you think to be true.
+		</p>
+		<p>
+			<em>
+				A few of the items ask about your relationships with your parents
+				or romantic partners. If any of these people have died, please answer
+				these items based on your relationships when they were alive. If you do
+				not currently have a partner but have had partners in the past, please
+				answer the item based on your. most recent significant romantic partner.
+			</em>
+		</p>
+		<p>
+			Select the answer that best describes you.
+		</p>
+		<table class="FormTable">
+			<thead>
+				<tr id="YSQ_S3_headerRow">
+					<th></th>
+					<th>Completely untrue of me</th>
+					<th>Mostly untrue of me</th>
+					<th>Slightly more true than untrue</th>
+					<th>Moderately true of me</th>
+					<th>Mostly true of me</th>
+					<th>Describes me perfectly</th>
+				</tr>
+			</thead>
+			<tbody id="YSQ_S3_tableBody">
 				<tr id="YSQ_S3_row_61">
 					<td class="question">61. My judgment cannot be counted on in everyday situations.</td>
 					<td><input type="radio" name="YSQ_S3_question_61" value="1" required></td>
@@ -4449,12 +4524,14 @@
 
 			const YSQ_S3_getData = () => {
 				const result = [NaN];
-				const form = document.getElementById('YSQ_S3_form');
-				const elements = form.elements;
+				for (let i = 1; i <= 3; i++) {
+					const form = document.getElementById('YSQ_S3_form_' + i);
+					const elements = form.elements;
 
-				for (const element of elements) {
-					if (element.name && element.type === 'radio' && element.checked) {
-						result.push(Number(element.value));
+					for (const element of elements) {
+						if (element.name && element.type === 'radio' && element.checked) {
+							result.push(Number(element.value));
+						}
 					}
 				}
 
